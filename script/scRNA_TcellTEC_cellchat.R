@@ -1,5 +1,3 @@
-#.libPaths("/jdfsbjcas1/ST_BJ/P21H28400N0233/zhangpanyu/Rpkgs/")                                
-#.libPaths("/jdfsbjcas1/ST_BJ/P21H28400N0232/gongchanghao/lib/Rlib")
 
 library(tidyverse)
 library(CellChat)
@@ -7,8 +5,8 @@ library(ggalluvial)
 library(Seurat)
 options(stringsAsFactors = FALSE)
 
-indir="/jdfsbjcas1/ST_BJ/P21H28400N0233/zhangpanyu/Project/CLP/scRNA/TEC_DP_cellchat/0.data/"
-outdir="/jdfsbjcas1/ST_BJ/P21H28400N0233/zhangpanyu/Project/CLP/scRNA/TEC_DP_cellchat/resultdir/Secreted Signaling"
+indir="scRNA/TEC_DP_cellchat/0.data/"
+outdir="scRNA/TEC_DP_cellchat/resultdir/Secreted Signaling"
 if(!dir.exists(outdir)){dir.create(outdir,recursive=T)}
 
 step1outdir=paste0(outdir,"/step1_SingSample/")
@@ -23,7 +21,7 @@ subcelltype=c("DPrea1","DPrea2","DPrea3","DPrea4","DPsel1","DPsel2","DPsel3","DP
 for (i in compare){
   scRNA=readRDS(paste0(indir,"/",i,".rds"))
   scRNA=scRNA[,scRNA$subcelltype %in% subcelltype]
-  delgene=read.table("/jdfsbjcas1/ST_BJ/P21H28400N0233/zhangpanyu/Project/CLP/scRNA/TEC_DP_cellchat/delgene.list",header=F)
+  delgene=read.table("delgene.list",header=F)
   keepgene=setdiff(rownames(scRNA),delgene$V1)
   scRNA=subset(scRNA, features = keepgene)
   
@@ -45,7 +43,7 @@ for (i in compare){
   
   ## cellchat 
   cellchat <- subsetData(cellchat)
-  future::plan("multicore", workers = 4)##ÉèÖÃ¶àÏß³Ì
+  future::plan("multicore", workers = 4)##è®¾ç½®å¤šçº¿ç¨‹
   cellchat <- identifyOverExpressedGenes(cellchat)
   cellchat <- identifyOverExpressedInteractions(cellchat)
   cellchat <- computeCommunProb(cellchat)
@@ -82,14 +80,14 @@ object.list <- list(con = con, case = case)
 cellchat <- mergeCellChat(object.list, add.names = names(object.list))
 saveRDS(cellchat, paste0(step2outdir,"/",prename,"_merge.rds"))
 
-###  ²»Í¬ÉúÎïÌõ¼şµÄÏ¸°ûÍ¨ĞÅÍøÂçµÄÏà»¥×÷ÓÃÊıÁ¿ºÍÇ¿¶È
+###  ä¸åŒç”Ÿç‰©æ¡ä»¶çš„ç»†èƒé€šä¿¡ç½‘ç»œçš„ç›¸äº’ä½œç”¨æ•°é‡å’Œå¼ºåº¦
 pdf(paste0(step2outdir,"/",prename,"_Compare.pdf"))
 gg1 <- compareInteractions(cellchat, show.legend = F, group = c(1,2))
 gg2 <- compareInteractions(cellchat, show.legend = F, group = c(1,2), measure = "weight")
 gg1 + gg2
 dev.off()
-### ²»Í¬Ï¸°ûÈºÖ®¼äµÄÏà»¥×÷ÓÃÊıÁ¿»òÏà»¥×÷ÓÃÇ¿¶È²»Í¬
-## Ô²Í¼
+### ä¸åŒç»†èƒç¾¤ä¹‹é—´çš„ç›¸äº’ä½œç”¨æ•°é‡æˆ–ç›¸äº’ä½œç”¨å¼ºåº¦ä¸åŒ
+## åœ†å›¾
 pdf(paste0(step2outdir,"/",prename,"Compare_circles.pdf"))
 netVisual_diffInteraction(cellchat, weight.scale = T)
 netVisual_diffInteraction(cellchat, weight.scale = T, measure = "weight")
@@ -101,7 +99,7 @@ netVisual_heatmap(cellchat, measure = "weight")
 #> Do heatmap based on a merged object
 dev.off()
 
-# ±È½ÏÅäÊÜÌå¶ÔµÄ²îÒì
+# æ¯”è¾ƒé…å—ä½“å¯¹çš„å·®å¼‚
 pdf(paste0(step2outdir,"/",prename,"_Compare_LR.pdf"))
 #compareInteractions(cellchat, show.legend = F, group = c(1,2))
 #compareInteractions(cellchat, show.legend = F, group = c(1,2), measure = "weight")
@@ -111,7 +109,7 @@ netVisual_bubble(cellchat,  comparison = c(1, 2), max.dataset = 2, title.name = 
 netVisual_bubble(cellchat,  comparison = c(1, 2), max.dataset = 1, title.name = "Decreased signaling in CLP2w", angle.x = 45, remove.isolate = T)
 dev.off()
 
-# ±È½ÏĞÅºÅÍ¨Â·µÄ²îÒì
+# æ¯”è¾ƒä¿¡å·é€šè·¯çš„å·®å¼‚
 p1 <- rankNet(cellchat, mode = "comparison", stacked = T, do.stat = TRUE)
 p2 <- rankNet(cellchat, mode = "comparison", stacked = F, do.stat = TRUE)
 
@@ -120,18 +118,18 @@ p1
 p2
 dev.off()
 
-# ²îÒìÅäÊÜÌå¶Ô±í¸ñ
+# å·®å¼‚é…å—ä½“å¯¹è¡¨æ ¼
 diff_interactions <- subsetCommunication(cellchat)
 write.csv(diff_interactions, paste0(step2outdir,"/",prename,"_differential_interactions.csv"))
 
-# ²îÒìĞÅºÅÍ¨Â·±í¸ñ
+# å·®å¼‚ä¿¡å·é€šè·¯è¡¨æ ¼
 pathway.union <- union(con@netP$pathways, case@netP$pathways)
 ht1 <- netAnalysis_signalingRole_heatmap(con, signaling = pathway.union, title = "Control", width = 5, height = 6)
 ht2 <- netAnalysis_signalingRole_heatmap(case, signaling = pathway.union, title = "Treatment", width = 5, height = 6)
 
 plotGrandComparison(cellchat, show.legend = T, justified = T)
-# ĞÅºÅÍ¨Â·²îÒì¿ÉÊÓ»¯
+# ä¿¡å·é€šè·¯å·®å¼‚å¯è§†åŒ–
 ht1 + ht2
-# ÍøÂçÍ¼¿ÉÊÓ»¯
+# ç½‘ç»œå›¾å¯è§†åŒ–
 netVisual_diffInteraction(cellchat_merged, weight.scale = T)
 netVisual_heatmap(cellchat_merged)
